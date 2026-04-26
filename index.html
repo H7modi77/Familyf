@@ -2,7 +2,7 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title>MAFIARHON | DATABASE ACCESS</title>
+    <title>MAFIARHON | SECURE DATABASE</title>
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Cairo:wght@400;700;900&display=swap" rel="stylesheet">
     <style>
         :root {
@@ -10,484 +10,346 @@
             --db-red: #ff003c;
             --db-blue: #00d4ff;
             --bg-dark: #050a0f;
-            --panel-bg: rgba(10, 20, 30, 0.9);
+            --panel-bg: rgba(10, 20, 30, 0.95);
             --border: 1px solid rgba(0, 255, 65, 0.3);
         }
 
         * { box-sizing: border-box; transition: all 0.2s ease; }
-
         body {
             font-family: 'Cairo', sans-serif;
             background-color: var(--bg-dark);
             color: var(--db-green);
-            margin: 0;
-            height: 100vh;
-            overflow: hidden;
-            background-image: 
-                linear-gradient(rgba(0, 255, 65, 0.05) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(0, 255, 65, 0.05) 1px, transparent 1px);
-            background-size: 30px 30px;
+            margin: 0; height: 100vh; overflow: hidden;
+            background-image: linear-gradient(rgba(0, 255, 65, 0.03) 1px, transparent 1px), linear-gradient(90deg, rgba(0, 255, 65, 0.03) 1px, transparent 1px);
+            background-size: 40px 40px;
         }
 
-        /* نظام الشاشات (قاعدة البيانات) */
         .container {
-            width: 98vw;
-            height: 96vh;
-            margin: 2vh auto;
-            background: var(--panel-bg);
-            border: var(--border);
-            border-radius: 10px;
-            display: flex;
-            flex-direction: column;
-            position: relative;
-            box-shadow: 0 0 50px rgba(0, 255, 65, 0.1);
+            width: 96vw; height: 94vh; margin: 3vh auto;
+            background: var(--panel-bg); border: var(--border);
+            display: flex; flex-direction: column; position: relative;
+            box-shadow: 0 0 40px rgba(0,0,0,1);
         }
 
         .header {
-            padding: 15px;
-            border-bottom: var(--border);
-            display: flex;
-            justify-content: space-between;
-            font-family: 'Share Tech Mono', monospace;
+            padding: 10px 20px; border-bottom: var(--border);
+            display: flex; justify-content: space-between;
+            font-family: 'Share Tech Mono', monospace; font-size: 0.9rem;
             background: rgba(0, 255, 65, 0.05);
         }
 
-        .page {
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100%;
-            padding: 20px;
-            animation: scanIn 0.4s ease-out;
-        }
-
+        .page { display: none; flex-direction: column; align-items: center; justify-content: center; height: 100%; padding: 30px; animation: fadeIn 0.5s ease; }
         .page.active { display: flex; }
 
-        @keyframes scanIn {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* كروت الشخصيات (قاعدة البيانات) */
+        /* الكروت والشبكة */
         .db-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-            gap: 15px;
-            width: 100%;
-            max-width: 1100px;
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 15px; width: 100%; max-width: 1000px; margin: 20px 0;
         }
 
         .db-card {
-            background: rgba(0, 20, 30, 0.8);
-            border: 1px solid rgba(0, 255, 65, 0.2);
-            padding: 15px;
-            text-align: center;
-            position: relative;
-            cursor: pointer;
-            overflow: hidden;
+            background: rgba(0, 20, 30, 0.8); border: 1px solid rgba(0, 255, 65, 0.2);
+            padding: 15px; text-align: center; cursor: pointer;
         }
-
         .db-card:hover { border-color: var(--db-green); box-shadow: 0 0 15px var(--db-green); }
-        .db-card.selected { background: rgba(0, 255, 65, 0.15); border-color: var(--db-green); }
-        .db-card img { width: 100%; height: auto; border: 1px solid rgba(255,255,255,0.1); margin-bottom: 10px; }
+        .db-card.selected { background: rgba(0, 255, 65, 0.2); border-color: var(--db-green); }
+        .db-card img { width: 100%; height: auto; border: 1px solid #444; margin-bottom: 10px; }
 
-        /* الأزرار الهيكلية */
+        /* الأزرار */
         button {
-            background: transparent;
-            color: var(--db-green);
-            border: 1px solid var(--db-green);
-            padding: 10px 30px;
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 1.2rem;
-            cursor: pointer;
-            text-transform: uppercase;
-            letter-spacing: 2px;
-            margin: 10px;
+            background: transparent; color: var(--db-green); border: 1px solid var(--db-green);
+            padding: 12px 35px; font-family: 'Share Tech Mono', monospace;
+            cursor: pointer; letter-spacing: 2px; font-weight: bold; margin: 10px;
         }
-
         button:hover { background: var(--db-green); color: black; box-shadow: 0 0 20px var(--db-green); }
 
-        /* شاشة التحليل (Elimination) */
-        #elimination-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: black;
-            z-index: 1000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
+        /* الشاشات الخاصة */
+        .report-box {
+            width: 100%; max-width: 600px; background: rgba(0,0,0,0.5);
+            border-right: 4px solid var(--db-blue); padding: 20px; font-family: 'Share Tech Mono';
         }
+        .report-line { margin: 15px 0; font-size: 1.2rem; }
 
-        .scanning-text {
-            font-family: 'Share Tech Mono', monospace;
-            font-size: 2rem;
-            color: var(--db-green);
-            margin-bottom: 20px;
-        }
-
-        .reveal-role-img {
-            width: 300px;
-            height: 300px;
-            border: 5px solid var(--db-green);
-            animation: glitch 0.2s infinite;
-            display: none;
-        }
-
-        @keyframes glitch {
-            0% { transform: translate(2px, 2px); }
-            50% { transform: translate(-2px, -2px); }
-            100% { transform: translate(1px, -1px); }
+        .detective-result-screen {
+            text-align: center; padding: 50px; border: 2px dashed var(--db-blue);
         }
 
         /* شاشة الفوز */
         #win-overlay {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            z-index: 2000;
-            display: none;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            background: rgba(0,0,0,0.95);
-            text-align: center;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            z-index: 2000; display: none; flex-direction: column;
+            align-items: center; justify-content: center; background: black;
         }
 
-        .win-title { font-size: 5rem; font-weight: 900; letter-spacing: 10px; }
-
-        input {
-            background: transparent;
-            border: 1px solid var(--db-green);
-            color: var(--db-green);
-            padding: 10px;
-            text-align: center;
-            font-size: 1.2rem;
-        }
-
-        .status-bar { font-size: 0.8rem; padding: 5px; color: rgba(0, 255, 65, 0.5); }
+        input { background: transparent; border: 1px solid var(--db-green); color: var(--db-green); padding: 10px; text-align: center; }
     </style>
 </head>
 <body>
 
 <div class="container">
     <div class="header">
-        <span>MAFIARHON_OS [VERSION 4.0.1]</span>
-        <span id="system-time">STATUS: STANDBY</span>
+        <span>SYSTEM_STATUS: ACTIVE</span>
+        <span id="sys-clock">00:00:00</span>
     </div>
 
-    <!-- الصفحة 1: الإعدادات -->
-    <div id="page-start" class="page active">
-        <h1 style="font-family: 'Share Tech Mono'; font-size: 4rem;">ACCESS DATABASE</h1>
-        <input type="number" id="player-count" placeholder="COUNT: 5-15" min="5" max="15">
-        <button onclick="goToNames()">INITIALIZE</button>
+    <!-- 1. البداية -->
+    <div id="p-start" class="page active">
+        <h1 style="font-size: 3rem; letter-spacing: 10px;">MAFIARHON_DB</h1>
+        <input type="number" id="p-count" placeholder="COUNT: 5-15">
+        <button onclick="setupNames()">ACCESS</button>
     </div>
 
-    <!-- الصفحة 2: الأسماء -->
-    <div id="page-names" class="page">
-        <h2>INPUT SUBJECT NAMES</h2>
-        <div id="names-container" class="db-grid" style="overflow-y: auto; max-height: 60%;"></div>
-        <button onclick="assignAndStart()">GENERATE ROLES</button>
+    <!-- 2. الأسماء -->
+    <div id="p-names" class="page">
+        <h2>IDENTIFY SUBJECTS</h2>
+        <div id="names-list" class="db-grid" style="max-height: 50vh; overflow-y: auto;"></div>
+        <button onclick="startRoles()">INITIATE ROLES</button>
     </div>
 
-    <!-- الصفحة 3: كشف الهوية -->
-    <div id="page-reveal" class="page">
-        <h2 id="reveal-user-title">ACCESSING PROFILE...</h2>
-        <div id="reveal-box" class="db-card" style="width: 300px;">
-            <img id="role-img-reveal" src="hidden.png" style="filter: brightness(0);">
-            <h3 id="role-name-display">ENCRYPTED</h3>
+    <!-- 3. كشف الأدوار -->
+    <div id="p-reveal" class="page">
+        <h2 id="rev-name">---</h2>
+        <div class="db-card" style="width: 250px;">
+            <img id="rev-img" src="" style="display:none;">
+            <h3 id="rev-role">ENCRYPTED</h3>
         </div>
-        <button id="btn-reveal-action" onclick="revealRole()">DECRYPT DATA</button>
+        <button id="rev-btn" onclick="revealMe()">DECRYPT</button>
     </div>
 
-    <!-- الصفحة 4: الليل (المهام) -->
-    <div id="page-night" class="page">
-        <h2 id="night-instruction" style="color: var(--db-red);">NIGHT PHASE</h2>
+    <!-- 4. الليل (يتم تكرارها لكل دور) -->
+    <div id="p-night" class="page">
+        <h2 id="night-role-title">ROLE PHASE</h2>
+        <p id="night-desc">---</p>
         <div id="night-grid" class="db-grid"></div>
-        <button onclick="submitNightAction()">CONFIRM TARGET</button>
+        <button onclick="confirmAction()">CONFIRM SELECTION</button>
     </div>
 
-    <!-- الصفحة 5: التلخيص -->
-    <div id="page-summary" class="page">
-        <h2 style="color: var(--db-blue);">NIGHTLY REPORT</h2>
-        <div id="summary-content" style="font-family: 'Share Tech Mono'; font-size: 1.2rem; border-left: 2px solid var(--db-blue); padding-left: 20px;"></div>
-        <button onclick="goToDiscussion()">OPEN COMM CHANNELS</button>
+    <!-- 5. صفحة المحقق الخاصة -->
+    <div id="p-det-result" class="page">
+        <div class="detective-result-screen">
+            <h1 style="color: var(--db-blue);">INTEL REPORT</h1>
+            <p>Subject Analysis Result:</p>
+            <div id="det-data" style="font-size: 3rem; margin: 30px 0;">---</div>
+            <button onclick="goToSummary()">CONTINUE TO SYSTEM LOGS</button>
+        </div>
     </div>
 
-    <!-- الصفحة 6: النقاش -->
-    <div id="page-discussion" class="page">
-        <h2>VOICE CHAT ACTIVE</h2>
-        <div style="font-size: 5rem; font-family: 'Share Tech Mono';" id="timer-display">03:30</div>
-        <div id="silenced-msg" style="color: var(--db-red);"></div>
-        <button onclick="goToVoting()">TERMINATION VOTE</button>
+    <!-- 6. صفحة التلخيص -->
+    <div id="p-summary" class="page">
+        <h2 style="color: var(--db-blue);">NIGHTLY INCIDENT REPORT</h2>
+        <div class="report-box" id="summary-report"></div>
+        <button onclick="startDiscuss()">START DISCUSSION</button>
     </div>
 
-    <!-- الصفحة 7: التصويت -->
-    <div id="page-voting" class="page">
-        <h2>SELECT SUBJECT FOR REMOVAL</h2>
-        <div id="voting-list" class="db-grid"></div>
-        <button onclick="calculateVoteResult()">EXECUTE</button>
+    <!-- 7. النقاش -->
+    <div id="p-discuss" class="page">
+        <h2>COMMUNICATION OPEN</h2>
+        <div style="font-size: 6rem; font-family: 'Share Tech Mono';" id="timer">03:30</div>
+        <div id="mute-alert" style="color: var(--db-red);"></div>
+        <button onclick="startVote()">VOTING TERMINAL</button>
     </div>
 
-    <div class="status-bar">
-        SYSTEM_ROOT@MAFIARHON:~# <span id="log-text">Waiting for user input...</span>
+    <!-- 8. التصويت -->
+    <div id="p-vote" class="page">
+        <h2>TERMINATION SELECTION</h2>
+        <div id="vote-grid" class="db-grid"></div>
+        <button onclick="executeVote()">EXECUTE SELECTION</button>
     </div>
 </div>
 
-<!-- شاشة الطرد الدرامية -->
-<div id="elimination-overlay">
-    <div class="scanning-text" id="scan-status">ANALYZING BIOMETRICS...</div>
-    <img id="reveal-eliminated-img" class="reveal-role-img" src="">
-    <div id="reveal-eliminated-name" style="font-size: 3rem; margin-top: 20px;"></div>
-    <button id="btn-close-reveal" style="display:none;" onclick="finishElimination()">RETURN TO BASE</button>
-</div>
-
-<!-- شاشة الفوز -->
 <div id="win-overlay">
-    <div id="win-text" class="win-title">SYSTEM SECURED</div>
-    <button onclick="location.reload()">REBOOT SYSTEM</button>
+    <h1 id="win-msg" style="font-size: 4rem;">---</h1>
+    <button onclick="location.reload()">REBOOT</button>
 </div>
 
 <script>
-    // ربط الصور حسب طلبك
-    const ROLE_DATA = {
-        MAFIA_KILLER: { name: 'مافيا القتل', img: 'M.png', color: '#ff003c' },
-        MAFIA_SILENCER: { name: 'مافيا السكيت', img: 'MM.png', color: '#ff003c' },
-        DOCTOR: { name: 'الطبيب', img: 'D.png', color: '#00d4ff' },
-        DETECTIVE: { name: 'المحقق', img: 'C.png', color: '#f1fa8c' },
-        CITIZEN: { name: 'مواطن', img: 'P.png', color: '#00ff41' }
+    const DATA = {
+        M: { name: 'مافيا القتل', img: 'M.png', c: '#ff003c' },
+        MM: { name: 'مافيا السكيت', img: 'MM.png', c: '#ff003c' },
+        D: { name: 'الطبيب', img: 'D.png', c: '#00d4ff' },
+        C: { name: 'المحقق', img: 'C.png', c: '#f1fa8c' },
+        P: { name: 'مواطن', img: 'P.png', c: '#00ff41' }
     };
 
-    let players = [];
-    let currentPlayerIdx = 0;
-    let nightPhase = "kill";
-    let nightChoices = { kill: null, silence: null, doctor: null, detective: null };
-    let votes = {};
-    let selectedPlayer = null;
+    let players = [], curIdx = 0, phase = "kill";
+    let acts = { kill: null, mute: null, doc: null, det: null };
+    let selected = null;
 
-    function showPage(id) {
+    function show(id) {
         document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
         document.getElementById(id).classList.add('active');
-        document.getElementById('log-text').innerText = `Navigated to ${id}...`;
     }
 
-    function goToNames() {
-        const count = document.getElementById('player-count').value;
-        if (count < 5 || count > 15) return;
-        let html = '';
-        for (let i = 0; i < count; i++) {
-            html += `<input type="text" class="name-in" placeholder="SUBJECT_${i+1}">`;
-        }
-        document.getElementById('names-container').innerHTML = html;
-        showPage('page-names');
+    function setupNames() {
+        let n = document.getElementById('p-count').value;
+        if(n<5 || n>15) return;
+        let h = '';
+        for(let i=0; i<n; i++) h += `<input type="text" class="n-in" placeholder="ID_${i+1}">`;
+        document.getElementById('names-list').innerHTML = h;
+        show('p-names');
     }
 
-    function assignAndStart() {
-        const inputs = document.querySelectorAll('.name-in');
-        let names = Array.from(inputs).map(i => i.value || `ID_${Math.floor(Math.random()*999)}`);
-        
-        let roles = [ROLE_DATA.MAFIA_KILLER, ROLE_DATA.MAFIA_SILENCER, ROLE_DATA.DOCTOR, ROLE_DATA.DETECTIVE];
-        while(roles.length < names.length) roles.push(ROLE_DATA.CITIZEN);
+    function startRoles() {
+        let names = Array.from(document.querySelectorAll('.n-in')).map(i => i.value || `SUB_${Math.random().toString(16).slice(2,5)}`);
+        let roles = [DATA.M, DATA.MM, DATA.D, DATA.C];
+        while(roles.length < names.length) roles.push(DATA.P);
         roles = roles.sort(() => Math.random() - 0.5);
 
-        players = names.map((n, i) => ({
-            name: n, role: roles[i], alive: true, silenced: false
-        }));
-
-        currentPlayerIdx = 0;
-        updateRevealPage();
-        showPage('page-reveal');
+        players = names.map((n, i) => ({ name: n, role: roles[i], alive: true, muted: false }));
+        curIdx = 0;
+        updateReveal();
+        show('p-reveal');
     }
 
-    function updateRevealPage() {
-        const p = players[currentPlayerIdx];
-        document.getElementById('reveal-user-title').innerText = `IDENTIFYING: ${p.name}`;
-        document.getElementById('role-img-reveal').style.filter = "brightness(0)";
-        document.getElementById('role-name-display').innerText = "ENCRYPTED";
-        document.getElementById('btn-reveal-action').innerText = "DECRYPT DATA";
-        document.getElementById('btn-reveal-action').onclick = revealRole;
+    function updateReveal() {
+        let p = players[curIdx];
+        document.getElementById('rev-name').innerText = `USER: ${p.name}`;
+        document.getElementById('rev-img').style.display = 'none';
+        document.getElementById('rev-role').innerText = "ENCRYPTED";
+        document.getElementById('rev-btn').innerText = "DECRYPT";
     }
 
-    function revealRole() {
-        const p = players[currentPlayerIdx];
-        document.getElementById('role-img-reveal').src = p.role.img;
-        document.getElementById('role-img-reveal').style.filter = "brightness(1)";
-        document.getElementById('role-name-display').innerText = p.role.name;
-        document.getElementById('role-name-display').style.color = p.role.color;
-        
-        document.getElementById('btn-reveal-action').innerText = "CLEAR LOG";
-        document.getElementById('btn-reveal-action').onclick = () => {
-            currentPlayerIdx++;
-            if (currentPlayerIdx < players.length) updateRevealPage();
-            else startNight();
-        };
+    function revealMe() {
+        let p = players[curIdx];
+        if(document.getElementById('rev-role').innerText === "ENCRYPTED") {
+            document.getElementById('rev-img').src = p.role.img;
+            document.getElementById('rev-img').style.display = 'block';
+            document.getElementById('rev-role').innerText = p.role.name;
+            document.getElementById('rev-role').style.color = p.role.c;
+            document.getElementById('rev-btn').innerText = "NEXT USER";
+        } else {
+            curIdx++;
+            if(curIdx < players.length) { updateReveal(); }
+            else { startNight(); }
+        }
     }
 
     function startNight() {
-        nightPhase = "kill";
-        updateNightUI();
-        showPage('page-night');
+        phase = "kill";
+        updateNight();
+        show('p-night');
     }
 
-    function updateNightUI() {
-        const titles = {
-            kill: "MAFIA: SELECT TARGET",
-            silence: "SILENCER: SELECT TARGET",
-            doctor: "DOCTOR: SELECT PATIENT",
-            detective: "DETECTIVE: SELECT SUSPECT"
-        };
-        document.getElementById('night-instruction').innerText = titles[nightPhase];
-        const grid = document.getElementById('night-grid');
-        grid.innerHTML = '';
+    function updateNight() {
+        let t = { kill: "MAFIA ATTACK", mute: "MAFIA SILENCER", doc: "SURGEON PROTECTION", det: "INVESTIGATOR" };
+        let d = { kill: "اختر الضحية للتصفية", mute: "اختر الشخص المراد منعه من الكلام", doc: "اختر الشخص الذي تريد حمايته", det: "اختر الشخص لمعرفة هويته" };
+        document.getElementById('night-role-title').innerText = t[phase];
+        document.getElementById('night-desc').innerText = d[phase];
+        
+        const g = document.getElementById('night-grid');
+        g.innerHTML = '';
         players.filter(p => p.alive).forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'db-card';
-            card.innerHTML = `<img src="https://api.dicebear.com/7.x/pixel-art/svg?seed=${p.name}"><h4>${p.name}</h4>`;
-            card.onclick = () => {
-                document.querySelectorAll('.db-card').forEach(c => c.classList.remove('selected'));
-                card.classList.add('selected');
-                selectedPlayer = p;
+            let c = document.createElement('div');
+            c.className = 'db-card';
+            c.innerHTML = `<h4>${p.name}</h4>`;
+            c.onclick = () => {
+                document.querySelectorAll('.db-card').forEach(x => x.classList.remove('selected'));
+                c.classList.add('selected');
+                selected = p;
             };
-            grid.appendChild(card);
+            g.appendChild(c);
         });
     }
 
-    function submitNightAction() {
-        if (!selectedPlayer) return;
-        nightChoices[nightPhase] = selectedPlayer;
-        
-        if (nightPhase === "kill") nightPhase = "silence";
-        else if (nightPhase === "silence") nightPhase = "doctor";
-        else if (nightPhase === "doctor") nightPhase = "detective";
-        else {
-            showSummary();
-            return;
-        }
-        selectedPlayer = null;
-        updateNightUI();
+    function confirmAction() {
+        if(!selected) return;
+        acts[phase] = selected;
+        if(phase === "kill") phase = "mute";
+        else if(phase === "mute") phase = "doc";
+        else if(phase === "doc") phase = "det";
+        else { showDetResult(); return; }
+        selected = null;
+        updateNight();
     }
 
-    function showSummary() {
+    function showDetResult() {
+        let isM = acts.det.role.name.includes("مافيا");
+        document.getElementById('det-data').innerText = isM ? "POSITIVE: MAFIA" : "NEGATIVE: CITIZEN";
+        document.getElementById('det-data').style.color = isM ? DATA.M.c : DATA.P.c;
+        show('p-det-result');
+    }
+
+    function goToSummary() {
         let dead = null;
-        if (nightChoices.kill !== nightChoices.doctor) {
-            dead = nightChoices.kill;
+        let killSuccess = acts.kill.name !== acts.doc.name;
+        if(killSuccess) {
+            dead = acts.kill;
             dead.alive = false;
         }
-        players.forEach(p => p.silenced = false);
-        nightChoices.silence.silenced = true;
 
-        const isMafia = nightChoices.detective.role.name.includes("مافيا");
+        players.forEach(p => p.muted = false);
+        acts.mute.muted = true;
 
-        document.getElementById('summary-content').innerHTML = `
-            > KILL_LOG: ${dead ? dead.name + ' TERMINATED' : 'STRIKE FAILED'}<br>
-            > SILENCE_LOG: ${nightChoices.silence.name} COMM_LINK_BROKEN<br>
-            > DETECTIVE_QUERY: ${nightChoices.detective.name} IS_MAFIA = ${isMafia}
+        document.getElementById('summary-report').innerHTML = `
+            <div class="report-line"># ATTACK_LOG: ${acts.kill.name} TARGETED.</div>
+            <div class="report-line"># MEDICAL_LOG: DOCTOR PROTECTED ${acts.doc.name}.</div>
+            <div class="report-line" style="color:${killSuccess?'red':'cyan'}"># RESULT: ${killSuccess ? dead.name + ' ELIMINATED' : 'ATTACK DEFLECTED'}.</div>
+            <div class="report-line"># SYSTEM_LOG: ${acts.mute.name} COMM_LINK_MUTED.</div>
         `;
-        showPage('page-summary');
+        show('p-summary');
     }
 
-    function goToDiscussion() {
-        showPage('page-discussion');
-        let time = 210;
-        const silencedP = players.find(p => p.silenced);
-        document.getElementById('silenced-msg').innerText = silencedP ? `[!] ${silencedP.name} IS MUTED BY SYSTEM` : "";
-        
-        const timer = setInterval(() => {
-            let m = Math.floor(time / 60);
-            let s = time % 60;
-            document.getElementById('timer-display').innerText = `${m}:${s < 10 ? '0'+s : s}`;
-            if (time <= 0) { clearInterval(timer); }
-            time--;
+    function startDiscuss() {
+        show('p-discuss');
+        let t = 210, m = players.find(p => p.muted);
+        document.getElementById('mute-alert').innerText = m ? `[!] ACCESS DENIED FOR: ${m.name}` : "";
+        let iv = setInterval(() => {
+            let min = Math.floor(t/60), sec = t%60;
+            document.getElementById('timer').innerText = `${min}:${sec<10?'0'+sec:sec}`;
+            if(t <= 0) clearInterval(iv);
+            t--;
         }, 1000);
-        window.activeTimer = timer;
+        window.dIv = iv;
     }
 
-    function goToVoting() {
-        clearInterval(window.activeTimer);
-        const grid = document.getElementById('voting-list');
-        grid.innerHTML = '';
+    function startVote() {
+        clearInterval(window.dIv);
+        const g = document.getElementById('vote-grid');
+        g.innerHTML = '';
         players.filter(p => p.alive).forEach(p => {
-            const card = document.createElement('div');
-            card.className = 'db-card';
-            card.innerHTML = `<h4>${p.name}</h4><input type="number" class="v-in" id="v-${p.name}" value="0" min="0">`;
-            grid.appendChild(card);
+            let c = document.createElement('div');
+            c.className = 'db-card';
+            c.innerHTML = `<h4>${p.name}</h4><input type="number" class="v-in" id="v-${p.name}" value="0">`;
+            g.appendChild(c);
         });
-        showPage('page-voting');
+        show('p-vote');
     }
 
-    function calculateVoteResult() {
-        let max = -1;
-        let target = null;
-        let tie = false;
-
+    function executeVote() {
+        let max = -1, target = null, tie = false;
         players.filter(p => p.alive).forEach(p => {
-            let v = parseInt(document.getElementById(`v-${p.name}`).value);
-            if (v > max) { max = v; target = p; tie = false; }
-            else if (v === max && v > 0) { tie = true; }
+            let v = +document.getElementById(`v-${p.name}`).value;
+            if(v > max) { max = v; target = p; tie = false; }
+            else if(v === max && v > 0) tie = true;
         });
 
-        if (tie || max === 0) {
-            alert("VOTE TIE - NO REMOVAL");
-            startNight();
-        } else {
-            revealElimination(target);
+        if(tie || max === 0) alert("NO CONSENSUS: NO ELIMINATION");
+        else {
+            alert(`TERMINATING: ${target.name}\nROLE: ${target.role.name}`);
+            target.alive = false;
         }
-    }
-
-    // أنيميشن الخروج الرهيب
-    function revealElimination(player) {
-        const overlay = document.getElementById('elimination-overlay');
-        const status = document.getElementById('scan-status');
-        const img = document.getElementById('reveal-eliminated-img');
-        const nameText = document.getElementById('reveal-eliminated-name');
-        
-        overlay.style.display = 'flex';
-        status.innerText = "ANALYZING BIOMETRICS...";
-        img.style.display = 'none';
-        nameText.innerText = "";
-        
-        setTimeout(() => {
-            status.innerText = "IDENTITY CONFIRMED: " + player.name;
-            img.src = player.role.img;
-            img.style.display = 'block';
-            nameText.innerText = player.role.name;
-            nameText.style.color = player.role.color;
-            player.alive = false;
-            document.getElementById('btn-close-reveal').style.display = 'block';
-        }, 3000);
-    }
-
-    function finishElimination() {
-        document.getElementById('elimination-overlay').style.display = 'none';
-        document.getElementById('btn-close-reveal').style.display = 'none';
         checkWin();
     }
 
     function checkWin() {
-        const mafia = players.filter(p => p.alive && p.role.name.includes("مافيا")).length;
-        const citizens = players.filter(p => p.alive && !p.role.name.includes("مافيا")).length;
+        let m = players.filter(p => p.alive && p.role.name.includes("مافيا")).length;
+        let c = players.filter(p => p.alive && !p.role.name.includes("مافيا")).length;
 
-        if (mafia === 0) {
-            showWin("CITIZENS SECURED THE CITY", "#00ff41");
-        } else if (mafia >= citizens) {
-            showWin("MAFIA CONTROL THE DATABASE", "#ff003c");
-        } else {
-            startNight();
-        }
+        if(m === 0) { win("CITIZENS WIN", "#00ff41"); }
+        else if(m >= c) { win("MAFIA WIN", "#ff003c"); }
+        else { startNight(); }
     }
 
-    function showWin(text, color) {
-        const win = document.getElementById('win-overlay');
-        const txt = document.getElementById('win-text');
-        win.style.display = 'flex';
-        txt.innerText = text;
-        txt.style.color = color;
-        win.style.boxShadow = `inset 0 0 100px ${color}`;
+    function win(txt, col) {
+        document.getElementById('win-msg').innerText = txt;
+        document.getElementById('win-msg').style.color = col;
+        document.getElementById('win-overlay').style.display = 'flex';
     }
 
-    // تحديث الوقت في الهيدر
     setInterval(() => {
-        document.getElementById('system-time').innerText = "SYS_TIME: " + new Date().toLocaleTimeString();
+        document.getElementById('sys-clock').innerText = new Date().toLocaleTimeString();
     }, 1000);
 </script>
 
