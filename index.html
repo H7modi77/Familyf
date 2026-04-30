@@ -15,7 +15,6 @@
             margin: 0; height: 100vh; overflow: hidden;
         }
 
-        /* حاوية النظام */
         .main-container {
             width: 96vw; height: 94vh; margin: 3vh auto;
             background: rgba(10, 20, 30, 0.98); border: 1px solid rgba(0,255,65,0.2);
@@ -33,7 +32,6 @@
 
         @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-        /* العداد */
         .counter-box {
             display: flex; align-items: center; background: rgba(0,255,65,0.05);
             padding: 20px; border: 2px solid var(--green); border-radius: 10px; margin: 20px;
@@ -44,7 +42,6 @@
         }
         .counter-val { font-size: 3rem; margin: 0 30px; font-family: 'Share Tech Mono'; }
 
-        /* الشبكة والكروت */
         .db-grid {
             display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
             gap: 15px; width: 100%; max-width: 1000px; margin: 20px 0;
@@ -54,6 +51,7 @@
             padding: 15px; text-align: center; cursor: pointer;
         }
         .db-card.selected { border-color: var(--green); background: rgba(0,255,65,0.2); }
+        .db-card.skip-card { border-color: var(--red); color: var(--red); }
         .db-card img { width: 100px; height: 100px; border: 1px solid #333; margin-bottom: 10px; }
 
         .action-btn {
@@ -62,7 +60,6 @@
         }
         .action-btn:hover { background: var(--green); color: black; box-shadow: 0 0 20px var(--green); }
 
-        /* شاشة الخروج والحدث الانتقالي (Reveal) */
         #termination-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: #000; z-index: 9999; display: none;
@@ -76,23 +73,15 @@
         }
         @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.5; } }
 
-        .eliminated-card {
-            transform: scale(0); opacity: 0;
-        }
-        .eliminated-card.show {
-            animation: finalReveal 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.28) forwards;
-        }
-        @keyframes finalReveal {
-            to { transform: scale(1.2); opacity: 1; }
-        }
+        .eliminated-card { transform: scale(0); opacity: 0; }
+        .eliminated-card.show { animation: finalReveal 0.8s cubic-bezier(0.17, 0.89, 0.32, 1.28) forwards; }
+        @keyframes finalReveal { to { transform: scale(1.2); opacity: 1; } }
 
         .role-img-large {
             width: 250px; height: 250px; border: 5px solid var(--green);
             box-shadow: 0 0 50px var(--green); margin: 20px;
         }
-
-        /* مدخلات */
-        .name-input { background: transparent; border: 1px solid var(--green); color: var(--green); padding: 10px; text-align: center; width: 100%; }
+        .n-in { background: transparent; border: 1px solid var(--green); color: var(--green); padding: 10px; text-align: center; width: 100%; }
 
     </style>
 </head>
@@ -104,7 +93,6 @@
         <span id="clock">00:00:00</span>
     </div>
 
-    <!-- 1. الشاشة الأولى: اختيار العدد -->
     <div id="scr-start" class="screen active">
         <h1>مافيارهون</h1>
         <p>تحديد عدد أهداف العملية</p>
@@ -116,14 +104,12 @@
         <button class="action-btn" onclick="goToNames()">بدء التهيئة</button>
     </div>
 
-    <!-- 2. الشاشة الثانية: الأسماء -->
     <div id="scr-names" class="screen">
         <h2>تسجيل الأسماء</h2>
         <div id="names-grid" class="db-grid" style="overflow-y:auto; max-height:50vh;"></div>
         <button class="action-btn" onclick="setupRoles()">توزيع المهمات</button>
     </div>
 
-    <!-- 3. كشف الأدوار -->
     <div id="scr-reveal" class="screen">
         <h2 id="rev-user">---</h2>
         <div class="db-card" style="width: 250px; cursor: default;">
@@ -133,15 +119,13 @@
         <button class="action-btn" id="rev-btn" onclick="handleReveal()">فك التشفير</button>
     </div>
 
-    <!-- 4. مرحلة الليل -->
     <div id="scr-night" class="screen">
         <h2 id="night-title">---</h2>
         <p id="night-desc">---</p>
         <div id="night-grid" class="db-grid"></div>
-        <button class="action-btn" onclick="confirmNightAction()">تأكيد الهدف</button>
+        <button class="action-btn" onclick="confirmNightAction()">تأكيد القرار</button>
     </div>
 
-    <!-- 5. المحقق -->
     <div id="scr-det" class="screen">
         <div style="border: 2px solid var(--blue); padding: 40px; text-align: center;">
             <h1 style="color: var(--blue);">نتيجة الفحص</h1>
@@ -150,14 +134,12 @@
         </div>
     </div>
 
-    <!-- 6. التلخيص -->
     <div id="scr-summary" class="screen">
-        <h2>تقرير العمليات</h2>
-        <div id="summary-content" style="border-right: 4px solid var(--blue); padding: 20px; font-size: 1.2rem;"></div>
+        <h2>تقرير العمليات الصباحي</h2>
+        <div id="summary-content" style="border-right: 4px solid var(--blue); padding: 20px; font-size: 1.2rem; min-width: 300px;"></div>
         <button class="action-btn" onclick="startDiscussion()">فتح النقاش</button>
     </div>
 
-    <!-- 7. النقاش -->
     <div id="scr-discuss" class="screen">
         <h2>النقاش جارٍ...</h2>
         <div id="timer" style="font-size: 6rem; font-family: 'Share Tech Mono';">03:30</div>
@@ -165,7 +147,6 @@
         <button class="action-btn" onclick="goToVoting()">منصة التصويت</button>
     </div>
 
-    <!-- 8. التصويت -->
     <div id="scr-vote" class="screen">
         <h2>من سيتم طرده؟</h2>
         <div id="vote-grid" class="db-grid"></div>
@@ -173,11 +154,9 @@
     </div>
 </div>
 
-<!-- الحدث الانتقالي للخروج (Reveal Transition) -->
 <div id="termination-overlay">
     <div class="alert-bar">تنبيه: تصفية هوية نشطة</div>
     <h1 id="term-status" style="font-family: 'Share Tech Mono';">جاري سحب الصلاحيات...</h1>
-    
     <div id="elim-card" class="eliminated-card">
         <h2 id="elim-name" style="font-size: 2.5rem; margin: 0;">الاسم</h2>
         <img id="elim-role-img" class="role-img-large" src="">
@@ -186,7 +165,6 @@
     </div>
 </div>
 
-<!-- شاشة الفوز -->
 <div id="win-scr" style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:black; z-index:10000; flex-direction:column; align-items:center; justify-content:center;">
     <h1 id="win-msg" style="font-size: 4rem;">---</h1>
     <button class="action-btn" onclick="location.reload()">إعادة تشغيل</button>
@@ -201,8 +179,7 @@
         P: { n: 'مواطن بريء', img: 'P.png', c: '#00ff41' }
     };
 
-    let pCount = 5;
-    let players = [], currentIdx = 0, nPhase = "kill";
+    let pCount = 5, players = [], currentIdx = 0, nPhase = "kill";
     let acts = { kill: null, mute: null, doc: null, det: null };
     let tempTarget = null;
 
@@ -228,7 +205,6 @@
         let rPool = [ROLES.M, ROLES.MM, ROLES.D, ROLES.C];
         while (rPool.length < names.length) rPool.push(ROLES.P);
         rPool = rPool.sort(() => Math.random() - 0.5);
-
         players = names.map((n, i) => ({ name: n, role: rPool[i], alive: true, muted: false }));
         currentIdx = 0;
         updateRev();
@@ -244,8 +220,7 @@
     }
 
     function handleReveal() {
-        let p = players[currentIdx];
-        let btn = document.getElementById('rev-btn');
+        let p = players[currentIdx], btn = document.getElementById('rev-btn');
         if (btn.innerText === "فك التشفير") {
             document.getElementById('rev-img').src = p.role.img;
             document.getElementById('rev-img').style.display = 'block';
@@ -261,6 +236,7 @@
 
     function startNight() {
         nPhase = "kill";
+        acts = { kill: null, mute: null, doc: null, det: null };
         updateNightUI();
         scr('scr-night');
     }
@@ -277,7 +253,13 @@
         document.getElementById('night-desc').innerText = info[nPhase][1];
         
         const g = document.getElementById('night-grid');
-        g.innerHTML = '';
+        g.innerHTML = `<div class="db-card skip-card" id="skip-opt"><h4>تخطي المهمة</h4></div>`;
+        document.getElementById('skip-opt').onclick = () => {
+            document.querySelectorAll('.db-card').forEach(x => x.classList.remove('selected'));
+            document.getElementById('skip-opt').classList.add('selected');
+            tempTarget = "skip";
+        };
+
         players.filter(p => p.alive).forEach(p => {
             let d = document.createElement('div');
             d.className = 'db-card';
@@ -289,49 +271,72 @@
             };
             g.appendChild(d);
         });
+        tempTarget = null;
     }
 
     function confirmNightAction() {
-        if (!tempTarget) return;
-        acts[nPhase] = tempTarget;
+        if (!tempTarget) return alert("الرجاء اختيار هدف أو الضغط على تخطي");
+        acts[nPhase] = tempTarget === "skip" ? null : tempTarget;
+
         if (nPhase === "kill") nPhase = "mute";
         else if (nPhase === "mute") nPhase = "doc";
         else if (nPhase === "doc") nPhase = "det";
         else {
-            let isM = acts.det.role.n.includes("مافيا");
-            document.getElementById('det-result').innerText = isM ? "إيجابي: مافيا ⚠️" : "سلبي: مواطن ✅";
-            document.getElementById('det-result').style.color = isM ? "#ff003c" : "#00ff41";
-            scr('scr-det');
+            if (acts.det) {
+                let isM = acts.det.role.n.includes("مافيا");
+                document.getElementById('det-result').innerText = isM ? "إيجابي: مافيا ⚠️" : "سلبي: مواطن ✅";
+                document.getElementById('det-result').style.color = isM ? "#ff003c" : "#00ff41";
+                scr('scr-det');
+            } else {
+                showSummary();
+            }
             return;
         }
-        tempTarget = null;
         updateNightUI();
     }
 
     function showSummary() {
         let dead = null;
-        let survived = acts.kill.name === acts.doc.name;
-        if (!survived) { dead = acts.kill; dead.alive = false; }
-        players.forEach(p => p.muted = false);
-        acts.mute.muted = true;
+        let survived = false;
 
-        document.getElementById('summary-content').innerHTML = `
-            • محاولة تصفية: ${acts.kill.name}<br>
-            • تدخل الطبيب: ${acts.doc.name}<br>
-            • النتيجة: ${survived ? 'نجاة الهدف ✅' : dead.name + ' تم حذفه 💀'}<br>
-            • تم إسكات: ${acts.mute.name}
-        `;
+        if (acts.kill) {
+            if (acts.doc && acts.kill.name === acts.doc.name) {
+                survived = true;
+            } else {
+                dead = acts.kill;
+                dead.alive = false;
+            }
+        }
+
+        players.forEach(p => p.muted = false);
+        if (acts.mute) acts.mute.muted = true;
+
+        let resHTML = "";
+        if (survived) {
+            resHTML += `• محاولة تصفية: تم إفشال العملية بنجاح ✅<br>`;
+        } else if (dead) {
+            resHTML += `• تم حذف هدف: <b style="color:var(--red)">${dead.name}</b><br>`;
+            resHTML += `• المهمة المسجلة للهدف: <b style="color:${dead.role.c}">${dead.role.n}</b> 💀<br>`;
+        } else {
+            resHTML += `• لم تحدث أي عمليات تصفية الليلة.<br>`;
+        }
+
+        if (acts.mute) {
+            resHTML += `• تم تشويش اتصال العضو: ${acts.mute.name} (أبكم) 🔇<br>`;
+        }
+
+        document.getElementById('summary-content').innerHTML = resHTML;
         scr('scr-summary');
     }
 
     function startDiscussion() {
         scr('scr-discuss');
         let t = 210, mP = players.find(p => p.muted);
-        document.getElementById('mute-msg').innerText = mP ? `⚠️ تنبيه: ${mP.name} ممنوع من الكلام!` : "";
+        document.getElementById('mute-msg').innerText = mP ? `⚠️ تنبيه: ${mP.name} معزول صوتياً عن النظام!` : "";
         let inv = setInterval(() => {
             let min = Math.floor(t/60), sec = t%60;
             document.getElementById('timer').innerText = `${min}:${sec<10?'0'+sec:sec}`;
-            if (t <= 0) clearInterval(inv);
+            if (t <= 0) { clearInterval(inv); goToVoting(); }
             t--;
         }, 1000);
         window.activeInv = inv;
@@ -359,33 +364,26 @@
         });
 
         if (tie || max === 0) {
-            alert("تعادل! لا يوجد تصفية.");
+            alert("تعادل في الأصوات أو لم يصوت أحد! النظام يتخطى التصفية.");
             startNight();
         } else {
             showTerminationReveal(target);
         }
     }
 
-    // الحدث الانتقالي الجديد عند طرد لاعب
     function showTerminationReveal(player) {
         const overlay = document.getElementById('termination-overlay');
-        const status = document.getElementById('term-status');
         const card = document.getElementById('elim-card');
-        
         overlay.style.display = 'flex';
         card.classList.remove('show');
-        status.innerText = "جاري تدمير صلاحيات الوصول...";
-
+        document.getElementById('term-status').innerText = "جاري تدمير صلاحيات الوصول...";
         setTimeout(() => {
-            status.innerText = "تم طرد العضو: " + player.name;
-            setTimeout(() => {
-                document.getElementById('elim-name').innerText = player.name;
-                document.getElementById('elim-role-img').src = player.role.img;
-                document.getElementById('elim-role-text').innerText = player.role.n;
-                document.getElementById('elim-role-text').style.color = player.role.c;
-                player.alive = false; // هنا نقتله برمجياً
-                card.classList.add('show');
-            }, 1000);
+            document.getElementById('elim-name').innerText = player.name;
+            document.getElementById('elim-role-img').src = player.role.img;
+            document.getElementById('elim-role-text').innerText = player.role.n;
+            document.getElementById('elim-role-text').style.color = player.role.c;
+            player.alive = false;
+            card.classList.add('show');
         }, 1500);
     }
 
@@ -397,9 +395,8 @@
     function checkWin() {
         let m = players.filter(p => p.alive && p.role.n.includes("مافيا")).length;
         let c = players.filter(p => p.alive && !p.role.n.includes("مافيا")).length;
-
-        if (m === 0) endGame("انتصار المواطنين! تم تنظيف النظام.", "#00ff41");
-        else if (m >= c) endGame("سيطرة المافيا! سقط النظام.", "#ff003c");
+        if (m === 0) endGame("تم تنظيف النظام! انتصار المواطنين ✅", "#00ff41");
+        else if (m >= c) endGame("سقط النظام! سيطرة المافيا ⚠️", "#ff003c");
         else startNight();
     }
 
@@ -413,6 +410,5 @@
         document.getElementById('clock').innerText = new Date().toLocaleTimeString();
     }, 1000);
 </script>
-
 </body>
 </html>
